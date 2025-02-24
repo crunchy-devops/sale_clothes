@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                checkout scmGit(tags: [[name: 'v1']],
+                checkout scmGit(tags: [[name: 'v1']], branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: 'https://github.com/crunchy-devops/sale_clothes.git']])
             }
         }
