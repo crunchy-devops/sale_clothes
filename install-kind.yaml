@@ -1,0 +1,75 @@
+---
+- name: Install Kubernetes Kind and Create a Cluster
+  hosts: remote_hosts
+  become: yes
+  tasks:
+    - name: Download kubectl binary
+      get_url:
+        url: "https://dl.k8s.io/release/stable.txt"
+        dest: "/tmp/k8s_version"
+        mode: '0644'
+
+    - name: Set kubectl version variable
+      command: cat /tmp/k8s_version
+      register: k8s_version
+      changed_when: false
+
+    - name: Install kubectl
+      get_url:
+        url: "https://dl.k8s.io/release/{{ k8s_version.stdout }}/bin/linux/amd64/kubectl"
+        dest: "/usr/local/bin/kubectl"
+        mode: '0755'
+
+    - name: Verify kubectl installation
+      command: kubectl version --client
+      register: kubectl_version
+      changed_when: false
+
+    - name: Show kubectl version
+      debug:
+        msg: "Installed kubectl version: {{ kubectl_version.stdout }}"
+
+    - name: Download Kind binary
+      get_url:
+        url: "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
+        dest: "/usr/local/bin/kind"
+        mode: '0755'
+
+    - name: Verify Kind installation
+      command: kind version
+      register: kind_version
+      changed_when: false
+
+    - name: Show Kind version
+      debug:
+        msg: "Installed Kind version: {{ kind_version.stdout }}"
+
+    - name: Create Kind cluster configuration file
+      copy:
+        dest: "/root/kind-config.yaml"
+        content: |
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+          - role: control-plane
+          - role: worker
+          - role: worker
+
+    - name: Check if Kind cluster exists
+      command: kind get clusters
+      register: kind_clusters
+      changed_when: false
+      failed_when: false
+
+    - name: Create Kind cluster if not exists
+      command: kind create cluster --name sales --config /root/kind-config.yaml
+      when: "'sales' not in kind_clusters.stdout"
+
+    - name: Verify cluster creation
+      command: kubectl cluster-info
+      register: cluster_info
+      changed_when: false
+
+    - name: Show cluster information
+      debug:
+        msg: "Cluster Info: {{ cluster_info.stdout }}"
