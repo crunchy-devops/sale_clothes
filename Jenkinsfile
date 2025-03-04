@@ -3,6 +3,10 @@ pipeline {
     environment {
         TAG_NAME = "v1"
     }
+    parameters {
+        string(name: 'IMAGE_NAME', defaultValue: 'sales', description: 'sales image')
+        string(name: 'NEXUS', defaultValue: 'nexus:30999', description: 'NEXUS DNS entry')
+    }
     stages {
         stage('Checkout Code') {
             steps {
@@ -28,14 +32,17 @@ pipeline {
         stage('Docker build') {
             steps {
                 script {
-                  def maven = docker.image('maven:latest')
-                  maven.pull() // make sure we have the latest available from Docker Hub
-                  maven.inside {
-                    sh 'ls -alrt'
-                  }
+                    docker.withRegistry(credentialsId: 'nexuslogin')
+                        {
+                        def myImage = docker.build("${NEXUS}/${IMAGE_NAME}:${env.GIT_COMMIT_HASH}")
+                        #def myPush =  docker.image("${NEXUS}/${IMAGE_NAME}:${env.GIT_COMMIT_HASH}").push()
+                    }
+                   }
+                   }
                 }
              }
-        }
 
-    }
+
+
+
 }
