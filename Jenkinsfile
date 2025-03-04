@@ -35,7 +35,7 @@ pipeline {
                     docker.withRegistry(credentialsId: 'nexuslogin')
                         {
                         def myImage = docker.build("${NEXUS}/${IMAGE_NAME}:${env.GIT_COMMIT_HASH}")
-                        #def myPush =  docker.image("${NEXUS}/${IMAGE_NAME}:${env.GIT_COMMIT_HASH}").push()
+                        //def myPush =  docker.image("${NEXUS}/${IMAGE_NAME}:${env.GIT_COMMIT_HASH}").push()
                     }
                    }
                    }
