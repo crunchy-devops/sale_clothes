@@ -35,12 +35,10 @@
     - name: Install Docker packages
       apt:
         name:
-          - docker-ce{% if docker_version != 'latest' %}={{ docker_version }}{% endif %}
-          - docker-ce-cli{% if docker_version != 'latest' %}={{ docker_version }}{% endif %}
+          - docker-ce
+          - docker-ce-cli
           - containerd.io
-          - docker-buildx-plugin
-          - docker-compose-plugin
-        state: "{{ 'latest' if docker_version == 'latest' else 'present' }}"
+        state: present
         update_cache: yes
 
     - name: Start and enable Docker service
@@ -49,18 +47,13 @@
         state: started
         enabled: yes
 
-    - name: Install Docker Python package
-      pip:
-        name: docker
-        state: present
 
     - name: Add users to Docker group
       user:
-        name: "{{ item }}"
+        name: "{{ ansible_ssh_user }}"
         groups: docker
         append: yes
-      loop: "{{ docker_users }}"
-      when: docker_users | length > 0
+
 
     - name: Reset Docker connection to apply group changes
       meta: reset_connection
